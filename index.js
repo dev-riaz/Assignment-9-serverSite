@@ -29,7 +29,7 @@ async function run() {
         const bookingsCollection = db.collection("bookings");
 
         // DOCTORS
-        
+
         app.get("/allData", async (req, res) => {
             const result = await doctorsCollection.find().toArray();
             res.send(result);
@@ -43,25 +43,25 @@ async function run() {
             res.send(result);
         });
 
-       
+
         // BOOKINGS CREATE
-       
+
         app.post("/bookings", async (req, res) => {
             const result = await bookingsCollection.insertOne(req.body);
             res.send(result);
         });
 
-       
+
         // BOOKINGS GET
-      
+
         app.get("/bookings", async (req, res) => {
             const result = await bookingsCollection.find().toArray();
             res.send(result);
         });
 
-      
+
         // BOOKINGS UPDATE (FIXED)
-       
+
         app.put("/bookings/:id", async (req, res) => {
             try {
                 const id = req.params.id;
@@ -82,9 +82,24 @@ async function run() {
             }
         });
 
+        // BOOKINGS DELETE
+        app.delete("/bookings/:id", async (req, res) => {
+            try {
+                const id = req.params.id;
+
+                const result = await bookingsCollection.deleteOne({
+                    _id: new ObjectId(id),
+                });
+
+                res.send(result);
+            } catch (error) {
+                res.status(500).send({ message: error.message });
+            }
+        });
+
         console.log("MongoDB connected 🚀");
     } finally {
-        
+
     }
 }
 
