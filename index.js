@@ -28,9 +28,8 @@ async function run() {
         const doctorsCollection = db.collection("doctors");
         const bookingsCollection = db.collection("bookings");
 
-        // =========================
         // DOCTORS
-        // =========================
+        
         app.get("/allData", async (req, res) => {
             const result = await doctorsCollection.find().toArray();
             res.send(result);
@@ -44,25 +43,25 @@ async function run() {
             res.send(result);
         });
 
-        // =========================
+       
         // BOOKINGS CREATE
-        // =========================
+       
         app.post("/bookings", async (req, res) => {
             const result = await bookingsCollection.insertOne(req.body);
             res.send(result);
         });
 
-        // =========================
+       
         // BOOKINGS GET
-        // =========================
+      
         app.get("/bookings", async (req, res) => {
             const result = await bookingsCollection.find().toArray();
             res.send(result);
         });
 
-        // =========================
+      
         // BOOKINGS UPDATE (FIXED)
-        // =========================
+       
         app.put("/bookings/:id", async (req, res) => {
             try {
                 const id = req.params.id;
@@ -85,7 +84,7 @@ async function run() {
 
         console.log("MongoDB connected 🚀");
     } finally {
-        // keep alive
+        
     }
 }
 
