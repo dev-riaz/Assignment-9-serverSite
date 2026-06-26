@@ -1,65 +1,94 @@
-const express = require('express');
-const dotenv = require('dotenv')
-require('dotenv').config()
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const uri = process.env.MONGODB_URI
+const express = require("express");
+const dotenv = require("dotenv");
+require("dotenv").config();
+const cors = require("cors");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
-const cors = require('cors')
 const app = express();
-app.use(cors())
-
 const port = process.env.PORT || 5000;
+const uri = process.env.MONGODB_URI;
 
+// middleware
+app.use(cors());
+app.use(express.json());
 
+// Mongo client
 const client = new MongoClient(uri, {
-    serverApi: {
-        version: ServerApiVersion.v1,
-        strict: true,
-        deprecationErrors: true,
-    }
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
 });
 
-// const logger = (req, res, next) => {
-//     console.log(req.params);
-//     next()
-
-// }
-
 async function run() {
-    try {
+  try {
+    await client.connect();
 
-        await client.connect();
-        const db = client.db('assignment-9')
-        const doctorsCollection = db.collection("doctors")
+    const db = client.db("assignment-9");
 
-        app.get("/allData", async (req, res) => {
-            const cursor = doctorsCollection.find()
-            const result = await cursor.toArray()
-            res.send(result)
+    // collections
+    const doctorsCollection = db.collection("doctors");
+    const bookingsCollection = db.collection("bookings");
 
-        })
+   
+    app.get("/allData", async (req, res) => {
+      try {
+        const result = await doctorsCollection.find().toArray();
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
 
-        app.get("/allData/:id", async (req, res) => {
-            const { id } = req.params
-            const query = { _id: new ObjectId(id) }
-            const result = await doctorsCollection.findOne(query)
-            res.send(result)
+    
+    app.get("/allData/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await doctorsCollection.findOne(query);
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
 
-        })
+    
+    app.post("/bookings", async (req, res) => {
+      try {
+        const booking = req.body;
 
-    } finally {
+        const result = await bookingsCollection.insertOne(booking);
 
-        // await client.close();
-    }
+        res.send({
+          success: true,
+          message: "Booking saved successfully",
+          data: result,
+        });
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: error.message,
+        });
+      }
+    });
+
+   
+   
+
+    console.log("MongoDB connected successfully 🚀");
+  } finally {
+   
+  }
 }
+
 run().catch(console.dir);
 
-
-app.get('/', (req, res) => {
-    res.send('Hello World!');
+app.get("/", (req, res) => {
+  res.send("Doctor Appointment API Running...");
 });
 
 
 app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
+  console.log(`Server running on port ${port}`);
 });
