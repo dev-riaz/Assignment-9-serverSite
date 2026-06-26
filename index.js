@@ -19,6 +19,12 @@ const client = new MongoClient(uri, {
     }
 });
 
+// const logger = (req, res, next) => {
+//     console.log(req.params);
+//     next()
+
+// }
+
 async function run() {
     try {
 
