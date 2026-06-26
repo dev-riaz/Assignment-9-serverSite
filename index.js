@@ -97,7 +97,7 @@ async function run() {
             }
         });
 
-        console.log("MongoDB connected 🚀");
+
     } finally {
 
     }
