@@ -21,7 +21,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
     try {
-        await client.connect();
+        // await client.connect();
 
         const db = client.db("assignment-9");
 
@@ -55,7 +55,16 @@ async function run() {
         // BOOKINGS GET
 
         app.get("/bookings", async (req, res) => {
-            const result = await bookingsCollection.find().toArray();
+            const email = req.query.email;
+
+            const query = {};
+
+            if (email) {
+                query.email = email;
+            }
+
+            const result = await bookingsCollection.find(query).toArray();
+
             res.send(result);
         });
 
@@ -97,7 +106,7 @@ async function run() {
             }
         });
 
-
+        console.log("MongoDB connected 🚀");
     } finally {
 
     }
