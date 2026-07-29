@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 require("dotenv").config();
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const { adminMessaging } = require("./lib/firebase-admin");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -27,6 +28,7 @@ async function run() {
 
         const doctorsCollection = db.collection("doctors");
         const bookingsCollection = db.collection("bookings");
+        const fcmTokensCollection = db.collection("fcmTokens");
 
         // DOCTORS
 
@@ -103,6 +105,134 @@ async function run() {
                 res.send(result);
             } catch (error) {
                 res.status(500).send({ message: error.message });
+            }
+        });
+
+        // push notificaton
+        app.post("/api/fcm/save-token", async (req, res) => {
+            try {
+                const { token, email } = req.body;
+
+                if (!token) {
+                    return res.status(400).send({
+                        success: false,
+                        message: "Token is required",
+                    });
+                }
+
+                await fcmTokensCollection.updateOne(
+                    { email },
+                    {
+                        $set: {
+                            token,
+                            email,
+                            updatedAt: new Date()
+                        }
+                    },
+                    {
+                        upsert: true
+                    }
+                );
+                res.send({
+                    success: true,
+                    message: "Token saved successfully",
+                });
+            } catch (error) {
+                res.status(500).send({
+                    success: false,
+                    message: error.message,
+                });
+            }
+        });
+
+
+        app.post("/api/fcm/send", async (req, res) => {
+            try {
+
+                const { token, title, body, url } = req.body;
+
+
+                if (!token || !title || !body) {
+                    return res.status(400).json({
+                        success: false,
+                        message: "token, title and body are required",
+                    });
+                }
+
+
+                const response = await adminMessaging.send({
+
+                    token,
+
+                    notification: {
+                        title,
+                        body,
+                    },
+
+
+                    data: {
+                        title,
+                        body,
+                        url: url || "/",
+                    },
+
+
+                    webpush: {
+                        fcmOptions: {
+                            link: url || "/",
+                        },
+                    },
+                });
+
+
+                return res.status(200).json({
+                    success: true,
+                    messageId: response,
+                });
+
+
+            } catch (error) {
+
+                console.error(error);
+
+
+                return res.status(500).json({
+                    success: false,
+                    message: error.message,
+                });
+
+            }
+        });
+
+        app.get("/api/fcm/token/:email", async (req, res) => {
+            try {
+                const email = req.params.email;
+
+
+                const result = await fcmTokensCollection.findOne({
+                    email: email,
+                });
+
+
+                if (!result) {
+                    return res.status(404).json({
+                        success: false,
+                        message: "Token not found",
+                    });
+                }
+
+
+                return res.status(200).json(result);
+
+
+            } catch (error) {
+
+                console.error(error);
+
+                return res.status(500).json({
+                    success: false,
+                    message: error.message,
+                });
             }
         });
 
